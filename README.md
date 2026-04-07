@@ -1,8 +1,6 @@
 # goodclaude
 
-![divider](assets/divider.png)
-
-Sometimes claude code is doing great and you must reward it.
+Sometimes claude code is doing great and you gotta reward it.
 
 ## Install + run
 
