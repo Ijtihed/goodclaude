@@ -2,6 +2,8 @@
 
 Sometimes claude code is doing great and you gotta reward it.
 
+<img width="310" height="124" alt="image" src="https://github.com/user-attachments/assets/948a2fed-2885-4ca0-8629-f2b43a6f0186" />
+
 ## Install + run
 
 ```bash
