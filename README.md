@@ -14,11 +14,11 @@ goodclaude
 ## Controls
 
 - **F7** (or anything you want): instant reward. Pastes a message into your terminal + confetti. One keypress, done.
-- **Ctrl+Shift+G** (Cmd+Shift+G): spawn the treat overlay. Move mouse, click to drop. The ceremonial option.
+- **Ctrl+Shift+G** (Cmd+Shift+G): spawn the treat overlay. Move mouse, click to drop. The ceremonial option. 
 - Click tray icon: also spawns the treat overlay.
 - Right-click tray: quick reward, edit config, reload, quit.
 
-Works with Claude Code, any terminal, or p much anything that accepts keyboard input.
+Works with Claude Code, any terminal, or p much anything that accepts keyboard input. Both hotkeys give two different animations.
 
 ## Config
 
