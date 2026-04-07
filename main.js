@@ -29,11 +29,11 @@ const VK_V       = 0x56;
 const KEYUP      = 0x0002;
 
 const REWARD_PHRASES = [
-  '# \u{1F31F} Great job Claude! Keep it up!',
+  '# \u{1F31F} you\'re doing amazing!',
   '# \u{1F36A} Here\'s a cookie for being awesome',
-  '# \u{2B50} You\'re doing amazing work',
+  '# \u{2B50} dude you are the best',
   '# \u{1F3C6} Claude MVP of the day',
-  '# \u{1F4AA} That was clean code, well done',
+  '# \u{1F4AA} That was super clean code, well done',
   '# \u{1FAE1} *headpats* good Claude, good Claude',
   '# \u{1F49B} Pat pat pat. You deserve it.',
   '# \u{2728} *gentle headpat* you\'re doing so well',
