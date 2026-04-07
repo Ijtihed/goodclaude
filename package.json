@@ -1,8 +1,16 @@
 {
   "name": "goodclaude",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Reward Claude for good work",
   "license": "MIT",
+  "homepage": "https://goodclaude.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ijtihed/goodclaude.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ijtihed/goodclaude/issues"
+  },
   "main": "main.js",
   "bin": {
     "goodclaude": "bin/goodclaude.js"
