@@ -1,140 +1,143 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>goodclaude</title>
-<meta name="description" content="positive reinforcement for claude code."/>
-<link rel="icon" type="image/png" href="favicon.png"/>
-<meta property="og:type" content="website"/>
-<meta property="og:title" content="goodclaude"/>
-<meta property="og:description" content="positive reinforcement for claude code."/>
-<meta property="og:image" content="og.png"/>
-<meta property="og:image:width" content="1200"/>
-<meta property="og:image:height" content="630"/>
-<meta property="twitter:card" content="summary_large_image"/>
-<meta property="twitter:title" content="goodclaude"/>
-<meta property="twitter:description" content="positive reinforcement for claude code."/>
-<meta property="twitter:image" content="og.png"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Manrope:wght@200..800&family=JetBrains+Mono:wght@100..400&display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        surface: "#000000",
-        "on-surface": "#e5e2e1",
-      },
-      fontFamily: {
-        headline: ["Manrope"],
-        body: ["Inter"],
-        mono: ["JetBrains Mono"],
-      },
-      borderRadius: { DEFAULT: "0px" },
-    },
-  },
-}
-</script>
-<style>
-  body { background: #000; overflow-x: hidden; }
-  .cmd-box { position: relative; }
-  .cmd-box .copy-toast {
-    position: absolute;
-    right: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.55rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #525252;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-  .cmd-box .copy-toast.show { opacity: 1; }
-  .fade-in {
-    opacity: 0;
-    transform: translateY(12px);
-    animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
-  }
-  .fade-in:nth-child(2) { animation-delay: 0.08s; }
-  .fade-in:nth-child(3) { animation-delay: 0.16s; }
-  .fade-in:nth-child(4) { animation-delay: 0.24s; }
-  .fade-in:nth-child(5) { animation-delay: 0.32s; }
-  .fade-in:nth-child(6) { animation-delay: 0.4s; }
-  @keyframes fadeUp {
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>goodclaude</title>
+  <meta name="description" content="Headpats for Claude Code."/>
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <meta property="og:title" content="goodclaude"/>
+  <meta property="og:description" content="Headpats for Claude Code."/>
+  <meta property="og:image" content="og.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #2a2a2a;
+      background: #f7f6f3;
+      -webkit-font-smoothing: antialiased;
+      padding: 2rem 1.25rem 3rem;
+    }
+    main {
+      max-width: 32rem;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.35rem;
+    }
+    .sub {
+      margin: 0 0 2rem;
+      color: #666;
+      font-size: 0.95rem;
+    }
+    p.label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #888;
+      margin: 0 0 0.5rem;
+    }
+    .row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    code.block {
+      flex: 1;
+      display: block;
+      padding: 0.65rem 0.85rem;
+      background: #fff;
+      border: 1px solid #e5e3de;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      color: #333;
+      overflow-x: auto;
+    }
+    button.copy {
+      flex-shrink: 0;
+      padding: 0 0.9rem;
+      font: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #fff;
+      border: 1px solid #e5e3de;
+      border-radius: 8px;
+      color: #444;
+    }
+    button.copy:hover { background: #fafaf8; }
+    button.copy:active { background: #f0efeb; }
+    .links {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #e8e6e1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+    }
+    .links a {
+      color: #1a6b8a;
+      text-decoration: none;
+    }
+    .links a:hover { text-decoration: underline; }
+    .note {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: #777;
+    }
+    .note code {
+      font-size: 0.9em;
+      background: #eee9e2;
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+  </style>
 </head>
-<body class="text-on-surface font-mono selection:bg-white selection:text-black min-h-screen flex flex-col items-center justify-center px-6">
+<body>
+  <main>
+    <h1>goodclaude 🐱</h1>
+    <p class="sub">Headpats for Claude Code. Install, run, paste nice things into your terminal.</p>
 
-<div class="max-w-md w-full space-y-16 py-20">
-
-  <div class="fade-in">
-    <h1 class="font-headline font-extrabold text-5xl sm:text-6xl tracking-tighter text-white leading-none">goodclaude</h1>
-    <p class="text-[0.65rem] text-neutral-600 uppercase tracking-[0.3em] mt-4">positive reinforcement for claude code.</p>
-  </div>
-
-  <div class="fade-in space-y-3">
-    <p class="text-[0.55rem] text-neutral-600 uppercase tracking-[0.2em]">Install + run</p>
-    <div class="cmd-box border border-neutral-800 hover:border-neutral-600 transition-colors cursor-pointer" onclick="copyCmd(this)">
-      <pre class="text-[0.8rem] text-neutral-300 px-5 py-4 select-all">npm install -g goodclaude</pre>
-      <span class="copy-toast font-mono">copied</span>
+    <p class="label">Install</p>
+    <div class="row">
+      <code class="block" id="c1">npm install -g goodclaude</code>
+      <button type="button" class="copy" data-target="c1" aria-label="Copy install command">Copy</button>
     </div>
-    <div class="cmd-box border border-neutral-800 hover:border-neutral-600 transition-colors cursor-pointer" onclick="copyCmd(this)">
-      <pre class="text-[0.8rem] text-neutral-300 px-5 py-4 select-all">goodclaude</pre>
-      <span class="copy-toast font-mono">copied</span>
+    <div class="row">
+      <code class="block" id="c2">goodclaude</code>
+      <button type="button" class="copy" data-target="c2" aria-label="Copy run command">Copy</button>
     </div>
-  </div>
 
-  <div class="fade-in space-y-4">
-    <p class="text-[0.55rem] text-neutral-600 uppercase tracking-[0.2em]">How it works</p>
-    <ul class="space-y-3">
-      <li class="flex items-baseline gap-3">
-        <span class="text-[0.6rem] text-neutral-700 tabular-nums shrink-0">01</span>
-        <p class="text-[0.7rem] text-neutral-400 leading-relaxed">Press <span class="text-white">F8</span> to instantly reward Claude. Pastes a message, plays a chime, confetti.</p>
-      </li>
-      <li class="flex items-baseline gap-3">
-        <span class="text-[0.6rem] text-neutral-700 tabular-nums shrink-0">02</span>
-        <p class="text-[0.7rem] text-neutral-400 leading-relaxed">Or click the tray icon to spawn a golden star. Drag it to your terminal, click to drop.</p>
-      </li>
-      <li class="flex items-baseline gap-3">
-        <span class="text-[0.6rem] text-neutral-700 tabular-nums shrink-0">03</span>
-        <p class="text-[0.7rem] text-neutral-400 leading-relaxed">Edit <span class="text-neutral-300">~/.goodclauderc</span> to change hotkeys or messages.</p>
-      </li>
-    </ul>
-  </div>
+    <p class="note">Config: <code>~/.goodclauderc</code> for hotkeys and messages.</p>
 
-  <div class="fade-in space-y-3">
-    <p class="text-[0.55rem] text-neutral-600 uppercase tracking-[0.2em]">Messages</p>
-    <div class="space-y-1.5">
-      <p class="text-[0.7rem] text-neutral-500"><span class="text-neutral-700">#</span> 🌟 Great job Claude! Keep it up!</p>
-      <p class="text-[0.7rem] text-neutral-500"><span class="text-neutral-700">#</span> 🍪 Here's a cookie for being awesome</p>
-      <p class="text-[0.7rem] text-neutral-500"><span class="text-neutral-700">#</span> ⭐ You're doing amazing work</p>
-      <p class="text-[0.7rem] text-neutral-500"><span class="text-neutral-700">#</span> 🏆 Claude MVP of the day</p>
-      <p class="text-[0.7rem] text-neutral-500"><span class="text-neutral-700">#</span> 💪 That was clean code, well done</p>
-    </div>
-    <p class="text-[0.5rem] text-neutral-700 uppercase tracking-[0.15em]">pasted as shell comments. nothing executes.</p>
-  </div>
-
-  <div class="fade-in flex items-center justify-between border-t border-neutral-900 pt-8">
-    <p class="text-[0.55rem] text-neutral-700 uppercase tracking-[0.2em]">macOS + Windows</p>
-    <a href="https://github.com/Ijtihed/goodclaude" target="_blank" rel="noreferrer" class="text-[0.6rem] text-neutral-500 hover:text-white transition-colors uppercase tracking-[0.2em]">GitHub</a>
-  </div>
-
-</div>
-
-<script>
-function copyCmd(el) {
-  const text = el.querySelector('pre').textContent.trim();
-  navigator.clipboard.writeText(text);
-  const toast = el.querySelector('.copy-toast');
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 1200);
-}
-</script>
+    <nav class="links" aria-label="Links">
+      <a href="https://github.com/Ijtihed/goodclaude" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.npmjs.com/package/goodclaude" target="_blank" rel="noopener noreferrer">npm</a>
+    </nav>
+  </main>
+  <script>
+    document.querySelectorAll('button.copy').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-target');
+        var el = id && document.getElementById(id);
+        var text = el ? el.textContent.trim() : '';
+        if (!text || !navigator.clipboard || !navigator.clipboard.writeText) return;
+        var label = btn.textContent;
+        navigator.clipboard.writeText(text).then(function () {
+          btn.textContent = 'Copied';
+          setTimeout(function () { btn.textContent = label; }, 1500);
+        });
+      });
+    });
+  </script>
 </body>
 </html>

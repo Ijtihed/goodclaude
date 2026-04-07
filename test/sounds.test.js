@@ -4,24 +4,22 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const files = ['chime1.wav', 'chime2.wav', 'chime3.wav', 'chime4.wav'];
+const chimes = ['chime1.mp3', 'chime2.mp3', 'chime3.mp3', 'chime4.mp3'];
+const allSounds = [...chimes, 'grumpy.mp3'];
 
 describe('sound files', () => {
-  for (const name of files) {
+  for (const name of allSounds) {
     const fp = path.join(root, 'sounds', name);
 
     it(`${name} exists`, () => {
       assert.ok(fs.existsSync(fp));
     });
 
-    it(`${name} starts with RIFF header`, () => {
+    it(`${name} is valid MP3 (starts with ID3 or FF FB)`, () => {
       const buf = fs.readFileSync(fp);
-      assert.strictEqual(buf.subarray(0, 4).toString(), 'RIFF');
-    });
-
-    it(`${name} contains WAVE marker`, () => {
-      const buf = fs.readFileSync(fp);
-      assert.strictEqual(buf.subarray(8, 12).toString(), 'WAVE');
+      const hasID3 = buf.subarray(0, 3).toString() === 'ID3';
+      const hasSync = buf[0] === 0xFF && (buf[1] & 0xE0) === 0xE0;
+      assert.ok(hasID3 || hasSync, `${name} doesn't start with ID3 tag or MP3 sync word`);
     });
 
     it(`${name} is > 1KB`, () => {

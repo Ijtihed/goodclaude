@@ -2,7 +2,7 @@
 <html>
 <head>
 <style>
-  * { margin: 0; padding: 0; cursor: none; }
+  * { margin: 0; padding: 0; }
   html, body { overflow: hidden; background: transparent; width: 100%; height: 100%; }
   canvas { display: block; }
 </style>
@@ -19,57 +19,78 @@ function resize() { W = canvas.width = window.innerWidth; H = canvas.height = wi
 resize();
 window.addEventListener('resize', resize);
 
-// ── State ───────────────────────────────────────────────────────────────────
+// ── Load & process pat hand (remove black background) ────────────────────
+const patHandImg = new Image();
+patHandImg.src = 'assets/pat-hand.png';
+let processedHand = null;
+
+patHandImg.onload = () => {
+  const off = document.createElement('canvas');
+  off.width = patHandImg.width;
+  off.height = patHandImg.height;
+  const oc = off.getContext('2d');
+  oc.drawImage(patHandImg, 0, 0);
+  const id = oc.getImageData(0, 0, off.width, off.height);
+  const px = id.data;
+  for (let i = 0; i < px.length; i += 4) {
+    const brightness = (px[i] + px[i + 1] + px[i + 2]) / 3;
+    if (brightness < 35) {
+      px[i + 3] = 0;
+    } else if (brightness < 70) {
+      px[i + 3] = Math.floor(((brightness - 35) / 35) * px[i + 3]);
+    }
+  }
+  oc.putImageData(id, 0, 0);
+
+  processedHand = off;
+};
+
+// ── State ────────────────────────────────────────────────────────────────
 let mouseX = 0, mouseY = 0;
 let treat = null;
 let dropping = false;
 let dropX = 0, dropY = 0, dropTime = 0;
-let particles = [];
-let sparkles = [];
-let pulses = [];
 let hideTimer = null;
 let treatBob = 0;
 let treatScale = 0;
 
+let patting = false;
+let patPhase = 0;
+let patCycleCount = 0;
+const MAX_PATS = 4;
+const PAT_CYCLE_SPEED = 0.14;
+
 const BG_ALPHA = 0.011;
 
-const CONFETTI_COLORS = [
-  '#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-  '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE',
-  '#FF69B4', '#00FF7F', '#FFB347', '#87CEEB', '#FF6347',
-];
-
 const CHIME_SOUNDS = [
-  'sounds/chime1.wav', 'sounds/chime2.wav',
-  'sounds/chime3.wav', 'sounds/chime4.wav',
+  'sounds/chime1.mp3', 'sounds/chime2.mp3',
+  'sounds/chime3.mp3', 'sounds/chime4.mp3',
 ];
 
 document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 
 document.addEventListener('mousedown', () => {
-  if (treat && !dropping) {
-    triggerDrop();
-  }
+  if (treat && !dropping) triggerDrop();
 });
 
-// ── Drop logic ──────────────────────────────────────────────────────────────
+// ── Drop logic ───────────────────────────────────────────────────────────
 function triggerDrop() {
   dropping = true;
   dropX = mouseX;
   dropY = mouseY;
   dropTime = Date.now();
+  patting = true;
+  patPhase = 0;
+  patCycleCount = 0;
 
   playChime();
-  spawnConfetti(mouseX, mouseY);
-  spawnPulse(mouseX, mouseY);
   window.bridge.rewardDrop();
 
   hideTimer = setTimeout(() => {
     treat = null;
     dropping = false;
-    particles = [];
-    sparkles = [];
-    pulses = [];
+    patting = false;
+    document.body.style.cursor = 'default';
     window.bridge.hideOverlay();
   }, 2200);
 }
@@ -81,191 +102,74 @@ function playChime() {
   a.play().catch(() => {});
 }
 
-// ── Particle spawners ───────────────────────────────────────────────────────
-function spawnConfetti(x, y) {
-  for (let i = 0; i < 90; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const speed = 4 + Math.random() * 12;
-    particles.push({
-      x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 7,
-      w: 4 + Math.random() * 6,
-      h: 2 + Math.random() * 4,
-      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-      life: 1.0,
-      decay: 0.006 + Math.random() * 0.01,
-      rotation: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.35,
-      shape: Math.random() < 0.4 ? 'circle' : 'rect',
-    });
-  }
+function playGrumpy() {
+  const a = new Audio('sounds/grumpy.mp3');
+  a.volume = 0.7;
+  a.play().catch(() => {});
 }
 
-function spawnSparkle(x, y) {
-  sparkles.push({
-    x: x + (Math.random() - 0.5) * 40,
-    y: y + (Math.random() - 0.5) * 40,
-    size: 2 + Math.random() * 4,
-    life: 1.0,
-    decay: 0.03 + Math.random() * 0.04,
-    color: Math.random() < 0.5 ? '#FFD700' : '#FFF8DC',
-  });
-}
-
-function spawnPulse(x, y) {
-  pulses.push({ x, y, radius: 20, alpha: 0.9 });
-  setTimeout(() => pulses.push({ x, y, radius: 20, alpha: 0.7 }), 120);
-  setTimeout(() => pulses.push({ x, y, radius: 20, alpha: 0.5 }), 260);
-}
-
-// ── Drawing helpers ─────────────────────────────────────────────────────────
-function starPath(cx, cy, outerR, innerR, points) {
-  ctx.beginPath();
-  for (let i = 0; i < points * 2; i++) {
-    const angle = (i * Math.PI / points) - Math.PI / 2;
-    const r = i % 2 === 0 ? outerR : innerR;
-    const px = cx + Math.cos(angle) * r;
-    const py = cy + Math.sin(angle) * r;
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-}
-
-function drawTreat(x, y, scale) {
+// ── Draw hand ────────────────────────────────────────────────────────────
+function drawPatHand(x, y, scale, patOffset, rotation, alpha) {
+  if (!processedHand) return;
   ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
 
-  const grad = ctx.createRadialGradient(0, 0, 5, 0, 0, 55);
-  grad.addColorStop(0, 'rgba(255, 215, 0, 0.35)');
-  grad.addColorStop(1, 'rgba(255, 215, 0, 0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(-55, -55, 110, 110);
+  const targetH = 80;
+  const ratio = targetH / processedHand.height;
+  const w = processedHand.width * ratio * scale;
+  const h = targetH * scale;
 
-  starPath(0, 0, 30, 12, 5);
-  const starGrad = ctx.createLinearGradient(-30, -30, 30, 30);
-  starGrad.addColorStop(0, '#FFD700');
-  starGrad.addColorStop(0.45, '#FFF8DC');
-  starGrad.addColorStop(1, '#FFD700');
-  ctx.fillStyle = starGrad;
-  ctx.fill();
-  ctx.strokeStyle = '#DAA520';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  starPath(-3, -4, 13, 5, 5);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-  ctx.fill();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y + patOffset);
+  ctx.rotate(rotation);
+  ctx.drawImage(processedHand, -w * 0.35, -h * 0.85, w, h);
 
   ctx.restore();
 }
 
-// ── Update ──────────────────────────────────────────────────────────────────
+// ── Update ───────────────────────────────────────────────────────────────
 function update() {
   if (treat && !dropping) {
     treatBob += 0.06;
     treatScale = Math.min(1, treatScale + 0.08);
-    if (Math.random() < 0.45) spawnSparkle(mouseX, mouseY);
   }
 
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.28;
-    p.vx *= 0.993;
-    p.rotation += p.rotSpeed;
-    p.life -= p.decay;
-    if (p.life <= 0) particles.splice(i, 1);
-  }
-
-  for (let i = sparkles.length - 1; i >= 0; i--) {
-    const s = sparkles[i];
-    s.life -= s.decay;
-    s.y -= 0.6;
-    if (s.life <= 0) sparkles.splice(i, 1);
-  }
-
-  for (let i = pulses.length - 1; i >= 0; i--) {
-    const p = pulses[i];
-    p.radius += 3.5;
-    p.alpha -= 0.018;
-    if (p.alpha <= 0) pulses.splice(i, 1);
+  if (patting) {
+    patPhase += PAT_CYCLE_SPEED;
+    if (patPhase >= Math.PI * 2) {
+      patPhase -= Math.PI * 2;
+      patCycleCount++;
+      if (patCycleCount >= MAX_PATS) {
+        patting = false;
+      }
+    }
   }
 }
 
-// ── Draw ────────────────────────────────────────────────────────────────────
+// ── Draw ─────────────────────────────────────────────────────────────────
 function draw() {
   ctx.clearRect(0, 0, W, H);
 
   ctx.fillStyle = `rgba(0,0,0,${BG_ALPHA})`;
   ctx.fillRect(0, 0, W, H);
 
-  for (const p of pulses) {
-    ctx.save();
-    ctx.globalAlpha = p.alpha;
-    ctx.strokeStyle = '#FFD700';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  for (const s of sparkles) {
-    ctx.save();
-    ctx.globalAlpha = s.life;
-    starPath(s.x, s.y, s.size, s.size * 0.4, 4);
-    ctx.fillStyle = s.color;
-    ctx.fill();
-    ctx.restore();
-  }
-
-  for (const p of particles) {
-    ctx.save();
-    ctx.globalAlpha = p.life;
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.rotation);
-    ctx.fillStyle = p.color;
-    if (p.shape === 'rect') {
-      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-    } else {
-      ctx.beginPath();
-      ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
   if (treat && !dropping) {
-    const bobY = Math.sin(treatBob) * 5;
-    drawTreat(mouseX, mouseY + bobY, treatScale);
+    const t = treatBob;
+    const bobY = Math.sin(t) * 4;
+    const rock = Math.sin(t * 0.8) * 0.12;
+    const sway = Math.sin(t * 0.6) * 3;
+    drawPatHand(mouseX + sway, mouseY + bobY, treatScale, 0, rock, 1);
   }
 
-  if (treat && dropping) {
+  if (patting && dropping) {
+    const patOffset = Math.sin(patPhase) * 16;
+    const rock = Math.sin(patPhase * 2) * 0.08;
     const elapsed = Date.now() - dropTime;
-    const fadeOut = Math.max(0, 1 - elapsed / 900);
-    if (fadeOut > 0) {
-      const s = 1 + elapsed / 600;
-      ctx.save();
-      ctx.globalAlpha = fadeOut;
-      ctx.translate(dropX, dropY);
-      ctx.scale(s, s);
-      starPath(0, 0, 30, 12, 5);
-      const starGrad = ctx.createLinearGradient(-30, -30, 30, 30);
-      starGrad.addColorStop(0, '#FFD700');
-      starGrad.addColorStop(0.45, '#FFF8DC');
-      starGrad.addColorStop(1, '#FFD700');
-      ctx.fillStyle = starGrad;
-      ctx.fill();
-      ctx.restore();
-    }
+    const alpha = Math.max(0, 1 - elapsed / 2000);
+    drawPatHand(dropX, dropY, 1, patOffset, rock, alpha);
   }
 }
 
-// ── Main loop ───────────────────────────────────────────────────────────────
+// ── Main loop ────────────────────────────────────────────────────────────
 function loop() {
   update();
   draw();
@@ -273,55 +177,44 @@ function loop() {
 }
 loop();
 
-// ── IPC ─────────────────────────────────────────────────────────────────────
+// ── IPC ──────────────────────────────────────────────────────────────────
 window.bridge.onSpawnTreat(() => {
   treat = { active: true };
   dropping = false;
+  patting = false;
   treatBob = 0;
   treatScale = 0;
-  particles = [];
-  sparkles = [];
-  pulses = [];
+  if (processedHand) document.body.style.cursor = 'none';
   if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
 });
 
 window.bridge.onDismissTreat(() => {
   treat = null;
   dropping = false;
-  particles = [];
-  sparkles = [];
-  pulses = [];
+  patting = false;
+  document.body.style.cursor = 'default';
   if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
   window.bridge.hideOverlay();
 });
 
-window.bridge.onQuickReward(() => {
+window.bridge.onEscapeCancel(() => {
+  playGrumpy();
+  treat = null;
+  dropping = false;
+  patting = false;
+  document.body.style.cursor = 'default';
   if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-  particles = [];
-  sparkles = [];
-  pulses = [];
+  setTimeout(() => window.bridge.hideOverlay(), 300);
+});
 
-  const x = W / 2 + (Math.random() - 0.5) * W * 0.3;
-  const y = H / 2 + (Math.random() - 0.5) * H * 0.3;
-
-  playChime();
-  spawnConfetti(x, y);
-  spawnPulse(x, y);
-
+window.bridge.onQuickReward(() => {
   treat = { active: true };
-  dropping = true;
-  dropX = x;
-  dropY = y;
-  dropTime = Date.now();
-
-  hideTimer = setTimeout(() => {
-    treat = null;
-    dropping = false;
-    particles = [];
-    sparkles = [];
-    pulses = [];
-    window.bridge.hideOverlay();
-  }, 2200);
+  dropping = false;
+  patting = false;
+  treatBob = 0;
+  treatScale = 0;
+  if (processedHand) document.body.style.cursor = 'none';
+  if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
 });
 
 </script>

@@ -73,8 +73,8 @@ describe('main.js', () => {
     assert.ok(src.includes('function quickReward'));
   });
 
-  it('sends quick-reward IPC', () => {
-    assert.ok(src.includes("'quick-reward'"));
+  it('quick reward opens overlay', () => {
+    assert.ok(src.includes('toggleOverlay'));
   });
 
   it('only refocuses after tray click, not hotkey', () => {

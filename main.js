@@ -34,12 +34,17 @@ const REWARD_PHRASES = [
   '# \u{2B50} You\'re doing amazing work',
   '# \u{1F3C6} Claude MVP of the day',
   '# \u{1F4AA} That was clean code, well done',
+  '# \u{1FAE1} *headpats* good Claude, good Claude',
+  '# \u{1F49B} Pat pat pat. You deserve it.',
+  '# \u{2728} *gentle headpat* you\'re doing so well',
+  '# \u{1F970} The best Claude. Pat pat.',
+  '# \u{1F49E} *headpats intensify* incredible work',
 ];
 
 const DEFAULT_HOTKEY = 'CommandOrControl+Shift+G';
 const DEFAULT_QUICK_HOTKEY = 'F7';
 let config = {};
-let quickRewardQueued = false;
+let escapeRegistered = false;
 
 function configPath() {
   return path.join(os.homedir(), '.goodclauderc');
@@ -226,10 +231,7 @@ function createOverlay() {
   overlay.loadFile('overlay.html');
   overlay.webContents.on('did-finish-load', () => {
     overlayReady = true;
-    if (quickRewardQueued && overlay && overlay.isVisible()) {
-      quickRewardQueued = false;
-      overlay.webContents.send('quick-reward');
-    } else if (spawnQueued && overlay && overlay.isVisible()) {
+    if (spawnQueued && overlay && overlay.isVisible()) {
       const fromTray = spawnQueued === 'tray';
       spawnQueued = false;
       overlay.webContents.send('spawn-treat');
@@ -243,13 +245,34 @@ function createOverlay() {
   });
 }
 
+function registerEscape() {
+  if (escapeRegistered) return;
+  try {
+    globalShortcut.register('Escape', () => {
+      if (overlay && overlay.isVisible()) {
+        overlay.webContents.send('escape-cancel');
+        unregisterEscape();
+      }
+    });
+    escapeRegistered = true;
+  } catch (_) {}
+}
+
+function unregisterEscape() {
+  if (!escapeRegistered) return;
+  try { globalShortcut.unregister('Escape'); } catch (_) {}
+  escapeRegistered = false;
+}
+
 function toggleOverlay(fromTray) {
   if (overlay && overlay.isVisible()) {
     overlay.webContents.send('dismiss-treat');
+    unregisterEscape();
     return;
   }
   if (!overlay) createOverlay();
-  overlay.show();
+  overlay.showInactive();
+  registerEscape();
   if (overlayReady) {
     overlay.webContents.send('spawn-treat');
     if (fromTray) refocusPreviousApp();
@@ -260,14 +283,7 @@ function toggleOverlay(fromTray) {
 }
 
 function quickReward() {
-  sendReward();
-  if (!overlay) createOverlay();
-  overlay.show();
-  if (overlayReady) {
-    overlay.webContents.send('quick-reward');
-  } else {
-    quickRewardQueued = true;
-  }
+  toggleOverlay(false);
 }
 
 // ── IPC ─────────────────────────────────────────────────────────────────────
@@ -278,7 +294,10 @@ ipcMain.on('reward-drop', () => {
     console.warn('sendReward failed:', err?.message || err);
   }
 });
-ipcMain.on('hide-overlay', () => { if (overlay) overlay.hide(); });
+ipcMain.on('hide-overlay', () => {
+  unregisterEscape();
+  if (overlay) overlay.hide();
+});
 
 // ── Reward macro: paste positive message via clipboard (supports emoji) ─────
 function sendReward() {

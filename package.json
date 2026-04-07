@@ -27,6 +27,7 @@
     "main.js",
     "preload.js",
     "overlay.html",
+    "assets",
     "sounds",
     "icon",
     "bin/goodclaude.js",
