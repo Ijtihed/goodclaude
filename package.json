@@ -1,0 +1,47 @@
+{
+  "name": "goodclaude",
+  "version": "1.0.0",
+  "description": "Reward Claude for good work",
+  "license": "MIT",
+  "main": "main.js",
+  "bin": {
+    "goodclaude": "bin/goodclaude.js"
+  },
+  "os": [
+    "darwin",
+    "win32"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "electron",
+    "tray",
+    "overlay",
+    "cli",
+    "claude",
+    "reward",
+    "positive-reinforcement"
+  ],
+  "files": [
+    "main.js",
+    "preload.js",
+    "overlay.html",
+    "sounds",
+    "icon",
+    "bin/goodclaude.js",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "test": "node --test test/*.test.js",
+    "pack": "npm pack"
+  },
+  "dependencies": {
+    "electron": "^33.0.0"
+  },
+  "optionalDependencies": {
+    "koffi": "^2.9.0"
+  }
+}
