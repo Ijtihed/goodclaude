@@ -45,7 +45,9 @@
     "start": "electron .",
     "dev": "electron .",
     "test": "node --test test/*.test.js",
-    "pack": "npm pack"
+    "pack": "npm pack",
+    "build": "node -e \"process.exit(0)\"",
+    "vercel-build": "node -e \"process.exit(0)\""
   },
   "dependencies": {
     "electron": "^33.0.0"

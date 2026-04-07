@@ -1,0 +1,5 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "echo 'Static landing page — skipping npm install'",
+  "buildCommand": "echo 'Static landing page — no build'"
+}
